@@ -186,6 +186,8 @@ import "./systems/audio-gain-system";
 
 import "./gltf-component-mappings";
 
+import './systems/emoModel/emotion-logger';
+
 import { App } from "./App";
 import MediaDevicesManager from "./utils/media-devices-manager";
 import PinningHelper from "./utils/pinning-helper";
