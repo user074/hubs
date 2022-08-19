@@ -187,6 +187,8 @@ import "./systems/audio-gain-system";
 import "./gltf-component-mappings";
 
 import './systems/emoModel/emotion-logger';
+import { loadMobileNetFeatureModel} from './tensorflowTest.js';
+
 
 import { App } from "./App";
 import MediaDevicesManager from "./utils/media-devices-manager";
@@ -702,16 +704,16 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data,
      * Loads the MobileNet model and warms it up so ready for use.
      **/
     var tfscript = document.querySelector("#tfjs");
-    let mobilenet = undefined;
+    // let mobilenet = undefined;
     tfscript.addEventListener("load", function() {
-      async function loadMobileNetFeatureModel() {
-        const URL = 
-        'https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v3_small_100_224/feature_vector/5/default/1';
+      // async function loadMobileNetFeatureModel() {
+      //   const URL = 
+      //   'https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v3_small_100_224/feature_vector/5/default/1';
 
-        mobilenet = await tf.loadGraphModel(URL, {fromTFHub: true});
-        console.log('MobileNet v3 loaded successfully!');
+      //   mobilenet = await tf.loadGraphModel(URL, {fromTFHub: true});
+      //   console.log('MobileNet v3 loaded successfully!');
         
-      }
+      // }
   
       // Call the function immediately to start loading.
       loadMobileNetFeatureModel();
