@@ -250,6 +250,7 @@ import { OAuthScreenContainer } from "./react-components/auth/OAuthScreenContain
 import { SignInMessages } from "./react-components/auth/SignInModal";
 import { ThemeProvider } from "./react-components/styles/theme";
 import { LogMessageType } from "./react-components/room/ChatSidebar";
+import { transformToNestObject } from "react-hook-form";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
 NAF.options.firstSyncSource = PHOENIX_RELIABLE_NAF;
@@ -649,8 +650,30 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data,
         });
 
         //injectScripts with customized scripts
+        function injectScripts() {
+          const scripts = [
+            "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js"
+          ];
+          scripts.forEach(script => {
+          
+            var scriptEl = document.createElement("script");
+            // var srcAt = document.createAttribute('src');
+            // srcAt.value = script;
+            scriptEl.src = script;
+            scriptEl.id = "tfjs";
+            scriptEl.type = "text/javascript";
+            scriptEl.async = false;
+            scriptEl.defer = false;
+    
+            // scriptEl.setAttributeNode(srcAt);
+            document.querySelector("body").appendChild(scriptEl);
+    
+          }
+          );
+        }
         injectScripts();
-        console.log("injected scripts");
+       
+        console.log("injected scripts complete");
     };
 
     window.APP.hub = hub;
@@ -673,36 +696,27 @@ function handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data,
     }
 
 
-    function injectScripts() {
-      const scripts = [
-        "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js"
-      ];
-      scripts.forEach(script => {
-        var scriptEl = document.createElement("script");
-        var srcAt = document.createAttribute('src');
-        srcAt.value = script;
-        scriptEl.type = "text/javascript";
-        // scriptEl.src = script;
-        scriptEl.setAttributeNode(srcAt);
-        document.querySelector("body").appendChild(scriptEl);
-      }
-      );
-    }
+    
 
     /**
      * Loads the MobileNet model and warms it up so ready for use.
      **/
-    async function loadMobileNetFeatureModel() {
-      const URL = 
-      'https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v3_small_100_224/feature_vector/5/default/1';
-      
-      mobilenet = await tf.loadGraphModel(URL, {fromTFHub: true});
-      console.log('MobileNet v3 loaded successfully!');
-      
-    }
+    var tfscript = document.querySelector("#tfjs");
+    let mobilenet = undefined;
+    tfscript.addEventListener("load", function() {
+      async function loadMobileNetFeatureModel() {
+        const URL = 
+        'https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v3_small_100_224/feature_vector/5/default/1';
 
-    // Call the function immediately to start loading.
-    loadMobileNetFeatureModel();
+        mobilenet = await tf.loadGraphModel(URL, {fromTFHub: true});
+        console.log('MobileNet v3 loaded successfully!');
+        
+      }
+  
+      // Call the function immediately to start loading.
+      loadMobileNetFeatureModel();
+    });
+   
 
     
 
