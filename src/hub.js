@@ -186,7 +186,7 @@ import './systems/audio-gain-system'
 
 import './gltf-component-mappings'
 
-import './systems/emoModel/emotion-logger'
+import { inject_emotionLogger } from './systems/emoModel/emotion-logger'
 
 import { App } from './App'
 import MediaDevicesManager from './utils/media-devices-manager'
@@ -702,7 +702,8 @@ function handleHubChannelJoined (entryManager, hubChannel, messageDispatch, data
         tfLength--
         if (tfLength === 0) {
           console.log('Starting to load tfTest')
-          tfTest()
+          inject_emotionLogger()
+          // tfTest()
         }
       })
     }

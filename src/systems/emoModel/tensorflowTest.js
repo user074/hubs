@@ -1,4 +1,8 @@
 import { MediaDevices, MediaDevicesEvents } from '../../utils/media-devices-utils'
+import { paths } from '../userinput/paths'
+import { emojis, spawnEmojiInFrontOfUser } from '../../components/emoji'
+import { waitForDOMContentLoaded } from '../../utils/async-utils'
+import { faTicketAlt } from '@fortawesome/free-solid-svg-icons'
 
 export function tfTest () {
   console.log('tfTest started')
@@ -69,33 +73,6 @@ export function tfTest () {
     }
   }
 
-  if (getUserMediaSupported()) {
-    if (model && model_emotion) {
-      console.warn('Please provide Webcam Access.')
-    } else {
-      blazeface.load().then(function (loadedModel) {
-        model = loadedModel
-        if (model_emotion) {
-          console.warn('Please provide Webcam Access.')
-        }
-      })
-      console.log('loading models')
-
-      // tf.loadLayersModel('model.json', false).then(function (loadedModel) {
-      //   model_emotion = loadedModel
-      //   if (model) {
-      //     console.warn('Please provide Webcam Access.')
-      //   }
-      // })
-
-      loadModel(url)
-    }
-    // enableWebcamButton.addEventListener('click', enableCam)
-    enableCam()
-  } else {
-    console.warn('getUserMedia() is not supported by your browser')
-  }
-
   function predictWebcam (stream) {
     console.log('predictWebcam started')
     var frameVar
@@ -111,7 +88,7 @@ export function tfTest () {
     // Now let's start classifying a frame in the stream.
   }
 
-  function processFrame (imageBitmap) {
+  async function processFrame (imageBitmap) {
     model.estimateFaces(imageBitmap).then(async function (predictions) {
       if (predictions.length === 1) {
         var landmark = predictions[0]['landmarks']
@@ -133,16 +110,44 @@ export function tfTest () {
         //Predicting from image.
         const result = model_emotion.predict(image_tensor)
         const predictedValue = result.arraySync()
-        console.log('angry', 100 * predictedValue['0'][0] + '%')
-        console.log('disgust', 100 * predictedValue['0'][1] + '%')
-        console.log('fear', 100 * predictedValue['0'][2] + '%')
-        console.log('happy', 100 * predictedValue['0'][3] + '%')
-        console.log('sad', 100 * predictedValue['0'][4] + '%')
-        console.log('surprise', 100 * predictedValue['0'][5] + '%')
-        console.log('neutral', 100 * predictedValue['0'][6] + '%')
+        // console.log('angry', 100 * predictedValue['0'][0] + '%')
+        // console.log('disgust', 100 * predictedValue['0'][1] + '%')
+        // console.log('fear', 100 * predictedValue['0'][2] + '%')
+        // console.log('happy', 100 * predictedValue['0'][3] + '%')
+        if (100 * predictedValue['0'][3] >= 50) {
+          console.log('happy')
+
+          spawnEmojiInFrontOfUser(emojis[0])
+        }
+        // console.log('sad', 100 * predictedValue['0'][4] + '%')
+        // console.log('surprise', 100 * predictedValue['0'][5] + '%')
+        // console.log('neutral', 100 * predictedValue['0'][6] + '%')
       }
       // Call this function again to keep predicting when the browser is ready.
-      if (control) window.requestAnimationFrame(predictWebcam)
+      // if (control) window.requestAnimationFrame(predictWebcam)
     })
+  }
+
+  if (getUserMediaSupported()) {
+    // let scene = document.querySelector('a-scene')
+    // console.log(scene)
+    // if (scene.is('entered')) {
+    if (model && model_emotion) {
+      console.warn('Please provide Webcam Access.')
+    } else {
+      blazeface.load().then(function (loadedModel) {
+        model = loadedModel
+        if (model_emotion) {
+          console.warn('Please provide Webcam Access.')
+        }
+      })
+      console.log('loading models')
+      loadModel(url)
+    }
+    // enableWebcamButton.addEventListener('click', enableCam)
+
+    // }
+  } else {
+    console.warn('getUserMedia() is not supported by your browser')
   }
 }
