@@ -31,12 +31,14 @@ export function inject_emotionLogger () {
     model_emotion = emoModel
     console.log(emoModel)
   })
+  const EMOJI_RATE_LIMIT = 1000
+  var tickCount = 0
   console.log('model_emotion and model loaded')
 
   AFRAME.registerSystem('emotion-logger', {
     init: function () {
       console.log('emotion-logger system initialized')
-      this.tickCount = 0
+      // this.tickCount = 0
       this.lastFPS = 0
       this.lastFpsUpdate = performance.now()
       this.frameCount = 0
@@ -57,6 +59,7 @@ export function inject_emotionLogger () {
         this.lastFpsUpdate = now
         this.frameCount = 0
       }
+      ++tickCount
 
       if (getUserMediaSupported()) {
         if (!mediaDevicesManager.isVideoShared) {
@@ -134,7 +137,7 @@ export function inject_emotionLogger () {
         //Uncaught (in promise) DOMException: The associated Track is in an invalid state
         processFrame(imageBitmap)
       })
-    }, 1000)
+    }, 3000)
 
     // Now let's start classifying a frame in the stream.
   }
@@ -149,27 +152,25 @@ export function inject_emotionLogger () {
         var left = landmark[5][0]
         var length = (left - right) / 2 + 5
         //Cropping the image.
-        const frame2 = await createImageBitmap(imageBitmap, nosex - length, nosey - length, 2 * length, 2 * length)
-        //Image is converted to tensor, resized, toBlackandWhite, then additional dimesion are added to match with [1, 48, 48, 1].
-        var image_tensor = tf.browser
-          .fromPixels(frame2)
-          .resizeBilinear([48, 48])
-          .mean(2)
-          .toFloat()
-          .expandDims(0)
-          .expandDims(-1)
-        //Predicting from image.
-        const result = model_emotion.predict(image_tensor)
-        const predictedValue = result.arraySync()
+        var frame2 = await createImageBitmap(imageBitmap, nosex - length, nosey - length, 2 * length, 2 * length)
+        tf.tidy(function () {
+          //Image is converted to tensor, resized, toBlackandWhite, then additional dimesion are added to match with [1, 48, 48, 1].
+          var image_tensor = tf.browser
+            .fromPixels(frame2)
+            .resizeBilinear([48, 48])
+            .mean(2)
+            .toFloat()
+            .expandDims(0)
+            .expandDims(-1)
+          //Predicting from image.
+          var result = model_emotion.predict(image_tensor)
+          var predictedValue = result.arraySync()
+          spawnEmoji(predictedValue)
+        })
         // console.log('angry', 100 * predictedValue['0'][0] + '%')
         // console.log('disgust', 100 * predictedValue['0'][1] + '%')
         // console.log('fear', 100 * predictedValue['0'][2] + '%')
-        // console.log('happy', 100 * predictedValue['0'][3] + '%')
-        if (100 * predictedValue['0'][3] >= 20) {
-          console.log('happy')
-
-          spawnEmojiInFrontOfUser(emojis[0])
-        }
+        // console.log('happy', 100 * predictedValue['0a'][3] + '%')
         // console.log('sad', 100 * predictedValue['0'][4] + '%')
         // console.log('surprise', 100 * predictedValue['0'][5] + '%')
         // console.log('neutral', 100 * predictedValue['0'][6] + '%')
@@ -177,5 +178,27 @@ export function inject_emotionLogger () {
       // Call this function again to keep predicting when the browser is ready.
       // if (control) window.requestAnimationFrame(predictWebcam)
     })
+  }
+
+  function spawnEmoji (predictions) {
+    var emotions = predictions['0']
+    console.log(emotions)
+    var max = Math.max(...emotions)
+    var index = emotions.indexOf(max)
+
+    if (window.APP.hubChannel.can('spawn_emoji')) {
+      console.log('spawn_emoji')
+      tickCount = 0
+      if (emotions[3] > 0.2) {
+        console.log('happy')
+        spawnEmojiInFrontOfUser(emojis[0])
+      } else if (emotions[5] > 0.8) {
+        console.log('surprise')
+        spawnEmojiInFrontOfUser(emojis[4])
+      } else if (emotions[4] > 0.8) {
+        console.log('sad')
+        spawnEmojiInFrontOfUser(emojis[6])
+      }
+    }
   }
 }
