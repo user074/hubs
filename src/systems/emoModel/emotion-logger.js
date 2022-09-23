@@ -157,7 +157,7 @@ export function inject_emotionLogger () {
           //Image is converted to tensor, resized, toBlackandWhite, then additional dimesion are added to match with [1, 48, 48, 1].
           var image_tensor = tf.browser
             .fromPixels(frame2)
-            .resizeBilinear([48, 48])
+            .resizeBilinear([32, 32])
             .mean(2)
             .toFloat()
             .expandDims(0)
@@ -182,23 +182,27 @@ export function inject_emotionLogger () {
 
   function spawnEmoji (predictions) {
     var emotions = predictions['0']
-    console.log(emotions)
+    console.log(emotions[0])
     var max = Math.max(...emotions)
     var index = emotions.indexOf(max)
 
     if (window.APP.hubChannel.can('spawn_emoji')) {
       console.log('spawn_emoji')
       tickCount = 0
-      if (emotions[3] > 0.2) {
+      if (emotions[0] > 0.01) {
         console.log('happy')
         spawnEmojiInFrontOfUser(emojis[0])
-      } else if (emotions[5] > 0.8) {
-        console.log('surprise')
-        spawnEmojiInFrontOfUser(emojis[4])
-      } else if (emotions[4] > 0.8) {
-        console.log('sad')
-        spawnEmojiInFrontOfUser(emojis[6])
       }
+      // if (emotions[0] > 0.1) {
+      //   console.log('happy')
+      //   spawnEmojiInFrontOfUser(emojis[0])
+      // } else if (emotions[5] > 0.8) {
+      //   console.log('surprise')
+      //   spawnEmojiInFrontOfUser(emojis[4])
+      // } else if (emotions[4] > 0.8) {
+      //   console.log('sad')
+      //   spawnEmojiInFrontOfUser(emojis[6])
+      // }
     }
   }
 }
