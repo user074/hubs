@@ -27,9 +27,22 @@ export function inject_emotionLogger () {
     model = loadedModel
     console.log(loadedModel)
   })
+
+  async function loadModel (url) {
+    try {
+      // For layered model
+      const loadedModel = await tf.loadGraphModel(url.model)
+      model_emotion = loadedModel
+      console.log('Load model success')
+      return loadedModel
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
   loadModel(url).then(function (emoModel) {
     model_emotion = emoModel
-    console.log(emoModel)
+    // console.log(emoModel)
   })
   const EMOJI_RATE_LIMIT = 1000
   var tickCount = 0
@@ -75,18 +88,6 @@ export function inject_emotionLogger () {
       }
     }
   })
-
-  async function loadModel (url) {
-    try {
-      // For layered model
-      const loadedModel = await tf.loadLayersModel(url.model)
-      model_emotion = loadedModel
-      console.log('Load model success')
-      return loadedModel
-    } catch (err) {
-      console.log(err)
-    }
-  }
 
   function getUserMediaSupported () {
     return navigator.mediaDevices && navigator.mediaDevices.getUserMedia
@@ -157,11 +158,13 @@ export function inject_emotionLogger () {
           //Image is converted to tensor, resized, toBlackandWhite, then additional dimesion are added to match with [1, 48, 48, 1].
           var image_tensor = tf.browser
             .fromPixels(frame2)
-            .resizeBilinear([32, 32])
+            .resizeBilinear([96, 96])
             .mean(2)
             .toFloat()
             .expandDims(0)
             .expandDims(-1)
+          //format the image tensor to three channels
+          image_tensor = tf.concat([image_tensor, image_tensor, image_tensor], -1)
           //Predicting from image.
           var result = model_emotion.predict(image_tensor)
           var predictedValue = result.arraySync()
@@ -189,9 +192,17 @@ export function inject_emotionLogger () {
     if (window.APP.hubChannel.can('spawn_emoji')) {
       console.log('spawn_emoji')
       tickCount = 0
-      if (emotions[0] > 0.01) {
-        console.log('happy')
-        spawnEmojiInFrontOfUser(emojis[0])
+      if (emotions[1] < 0.9) {
+        if (index === 0) {
+          console.log('happy')
+          spawnEmojiInFrontOfUser(emojis[0])
+        } else if (index === 2) {
+          console.log('sad')
+          spawnEmojiInFrontOfUser(emojis[6])
+        } else if (index === 3) {
+          console.log('surprise')
+          spawnEmojiInFrontOfUser(emojis[4])
+        }
       }
       // if (emotions[0] > 0.1) {
       //   console.log('happy')
