@@ -40,10 +40,13 @@ export function inject_emotionLogger () {
     }
   }
 
-  loadModel(url).then(function (emoModel) {
-    model_emotion = emoModel
-    // console.log(emoModel)
-  })
+  if (model_emotion === undefined) {
+    loadModel(url).then(function (emoModel) {
+      model_emotion = emoModel
+      console.log('emotion model loaded')
+    })
+  }
+
   const EMOJI_RATE_LIMIT = 1000
   var tickCount = 0
   console.log('model_emotion and model loaded')
@@ -192,7 +195,7 @@ export function inject_emotionLogger () {
     if (window.APP.hubChannel.can('spawn_emoji')) {
       console.log('spawn_emoji')
       tickCount = 0
-      if (emotions[1] < 0.9) {
+      if (emotions[1] < 0.95) {
         if (index === 0) {
           console.log('happy')
           spawnEmojiInFrontOfUser(emojis[0])
@@ -201,7 +204,7 @@ export function inject_emotionLogger () {
           spawnEmojiInFrontOfUser(emojis[6])
         } else if (index === 3) {
           console.log('surprise')
-          spawnEmojiInFrontOfUser(emojis[4])
+          spawnEmojiInFrontOfUser(emojis[7])
         }
       }
       // if (emotions[0] > 0.1) {
