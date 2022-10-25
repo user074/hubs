@@ -188,7 +188,7 @@ export function inject_emotionLogger () {
 
   function spawnEmoji (predictions) {
     var emotions = predictions['0']
-    console.log(emotions[0])
+    // console.log(emotions[0])
     var max = Math.max(...emotions)
     var index = emotions.indexOf(max)
 
